@@ -30,7 +30,7 @@ def main():
 
     # Load saved model
     model = DistilBertForSequenceClassification.from_pretrained(
-        "distilbert-reviews-genres"
+        "Apollo112/bert-goodreads-genre-assignment3"
     )
 
     trainer = Trainer(model=model)
@@ -81,4 +81,5 @@ def main():
 
 
 if __name__ == "__main__":
+
     main()
