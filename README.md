@@ -3,7 +3,7 @@ Optimizing Transformer Translation with Ray Tune &amp; Optuna
 
 Option 1 — Run in Jupyter Notebook / JupyterLab
 
-Open terminal in the project folder Launch Jupyter: jupyter notebook Open: DL_Assignment.ipynb Click: Kernel → Restart & Run All
+Open terminal in the project folder Launch Jupyter: jupyter notebook Open: M25CSA024_ass_4_tuned_en_to_hi.ipynb Click: Kernel → Restart & Run All
 
 Option 2 — Run in Google Colab (Recommended)
 
