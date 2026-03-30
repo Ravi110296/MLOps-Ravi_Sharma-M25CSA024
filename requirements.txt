@@ -1,0 +1,10 @@
+torch
+torchvision
+transformers
+peft
+datasets
+tqdm
+wandb
+optuna
+matplotlib
+scikit-learn
