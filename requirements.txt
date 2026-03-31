@@ -7,4 +7,6 @@ tqdm
 wandb
 optuna
 matplotlib
+seaborn
 scikit-learn
+wandb

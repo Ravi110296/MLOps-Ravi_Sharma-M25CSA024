@@ -1,0 +1,2 @@
+lora_with_without,rank,alpha,dropout,overall_test_accuracy,trainable_parameters,total_parameters
+With LoRA,8,8,0.1,0.8487,259684,21963848
