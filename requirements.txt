@@ -10,3 +10,4 @@ matplotlib
 seaborn
 scikit-learn
 wandb
+adversarial-robustness-toolbox
