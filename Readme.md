@@ -72,16 +72,14 @@ FGSM-art results -
 | 0.05    |  0.1645  |
 | 0.1     |  0.103   |
 
-0.0,0.8264
-0.01,0.6416
-0.03,0.2889
-0.05,0.1645
-0.1,0.103
 
 detection comparison b/w PGD vs BIM - 
 
-![alt text](detextion_comparison.png)
+![alt text](detection_comparison.png)
+
+10 samples for clean and adversarial images created using FGSM (with and without IBM ART), PGD, and BIM attacks - 
+
+![alt text](image-1.png)
 
 The 10 samples for clean and adversarial images created using FGSM (with and without IBM ART), PGD, and BIM attacks can be found on the WandB link.
-
-
+ 
