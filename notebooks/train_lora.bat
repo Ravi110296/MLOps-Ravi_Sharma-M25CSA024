@@ -1,0 +1,15 @@
+python train_text_to_image_lora.py ^
+  --pretrained_model_name_or_path="runwayml/stable-diffusion-v1-5" ^
+  --dataset_name="laion/laion2B-en" ^
+  --resolution=512 ^
+  --train_batch_size=32 ^                    
+  --gradient_accumulation_steps=2 ^
+  --num_train_epochs=5 ^                    
+  --learning_rate=1e-4 ^
+  --lr_scheduler="cosine" ^
+  --output_dir="../models/lora_finetuned_full" ^
+  --mixed_precision="fp16" ^
+  --report_to="tensorboard" ^
+  --checkpointing_steps=500 ^
+  --validation_prompt="A majestic dragon flying over snowy mountains at sunset, fantasy style" ^
+  --validation_epochs=1

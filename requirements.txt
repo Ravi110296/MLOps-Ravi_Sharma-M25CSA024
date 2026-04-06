@@ -1,0 +1,10 @@
+streamlit
+diffusers
+transformers
+torch 
+torchvision 
+torchaudio
+accelerate
+peft
+pillow
+sentence-transformers
