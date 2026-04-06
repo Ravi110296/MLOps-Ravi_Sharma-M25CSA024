@@ -1,10 +1,12 @@
 streamlit
 diffusers
 transformers
-torch 
-torchvision 
-torchaudio
 accelerate
 peft
 pillow
 sentence-transformers
+
+# PyTorch with CUDA 12.1 support (for RTX 2050)
+torch
+torchvision
+torchaudio

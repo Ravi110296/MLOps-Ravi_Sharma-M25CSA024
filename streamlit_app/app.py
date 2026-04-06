@@ -6,26 +6,41 @@ import os
 from sentence_transformers import SentenceTransformer, util
 from io import BytesIO
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+LORA_PATH = os.path.join(BASE_DIR, "models", "lora_finetuned")
+
 # ==================== CACHED PIPELINES ====================
 @st.cache_resource(show_spinner=False)
 def load_base_pipeline():
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    dtype = torch.float16 if device == "cuda" else torch.float32
     pipe = StableDiffusionPipeline.from_pretrained(
-        "runwayml/stable-diffusion-v1-5", torch_dtype=torch.float16, safety_checker=None
+        "runwayml/stable-diffusion-v1-5",
+        torch_dtype=dtype,
+        safety_checker=None
     )
-    pipe = pipe.to("cuda")
-    pipe.enable_attention_slicing()
+    pipe = pipe.to(device)
+    if device == "cuda":
+        pipe.enable_attention_slicing()
     return pipe
 
 @st.cache_resource(show_spinner=False)
 def load_lora_pipeline():
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    dtype = torch.float16 if device == "cuda" else torch.float32
     pipe = StableDiffusionPipeline.from_pretrained(
-        "runwayml/stable-diffusion-v1-5", torch_dtype=torch.float16, safety_checker=None
+        "runwayml/stable-diffusion-v1-5",
+        torch_dtype=dtype,
+        safety_checker=None
     )
-    pipe = pipe.to("cuda")
-    pipe.enable_attention_slicing()
-    lora_path = "../models/lora_finetuned"
-    if os.path.exists(lora_path):
-        pipe.load_lora_weights(lora_path)
+    pipe = pipe.to(device)
+    if device == "cuda":
+        pipe.enable_attention_slicing()
+
+    if not os.path.exists(LORA_PATH):
+        raise FileNotFoundError(f"LoRA path not found: {LORA_PATH}")
+
+    pipe.load_lora_weights(LORA_PATH)
     return pipe
 
 st.set_page_config(page_title="Text-to-Image MLOps Pipeline", layout="wide")
@@ -152,9 +167,8 @@ with tab3:
 
 
     st.header("📋 LoRA Details")
-    lora_path = "../models/lora_finetuned"
-    if os.path.exists(lora_path):
-        st.success(f"✅ LoRA loaded from: `{lora_path}`")
+    if os.path.exists(LORA_PATH):
+        st.success(f"✅ LoRA loaded from: `{LORA_PATH}`")
     else:
         st.error("LoRA folder not found!")
 
