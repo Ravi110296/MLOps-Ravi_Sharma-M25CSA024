@@ -24,18 +24,7 @@ The entire application is **Docker containerized**.
 - **Docker Support**: Full containerization for easy deployment
 
 ## Project Structure
-MLOps-Ravi_Sharma-M25CSA024/
-├── streamlit_app/
-│   └── app.py                 # Main Streamlit Application
-├── models/
-│   └── lora_finetuned/        # Trained LoRA weights + checkpoints
-├── notebooks/
-│   ├── train_text_to_image_lora.py
-│   └── train_lora.bat         # Training script for Windows
-├── Dockerfile
-├── docker-compose.yml
-├── requirements.txt
-└── README.md
+MLOps-Ravi_Sharma-M25CSA024/ │ ├── streamlit_app/ │ └── app.py # Main Streamlit Application │ ├── models/ │ ├── lora_finetuned/ # Trained LoRA weights + checkpoints │ ├── notebooks/ │ └── train_text_to_image_lora.py │ ├── train_lora.bat # Training script for Windows ├── Dockerfile ├── docker-compose.yml ├── requirements.txt └── README.md
 
 
 ## Technologies Used
