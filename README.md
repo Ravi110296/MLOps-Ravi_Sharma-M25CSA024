@@ -28,17 +28,18 @@ The entire application is **Docker containerized**.
 ```bash
 MLOps-Ravi_Sharma-M25CSA024/
 │
-├── streamlit_app/
-│   └── app.py                 # Main Streamlit Application
-│
 ├── models/
-│
-├── lora_finetuned/            # Trained LoRA weights + checkpoints
+│   └── lora_finetuned/                  # Trained LoRA weights (on LAION data subset) + checkpoints
+│   └── lora_finetuned_anime/            # Trained LoRA weights (on pokemon dataset) + checkpoints
+│   └── lora_finetuned_oil_painting/            # Trained LoRA weights (on pokemon dataset) + checkpoints
 │
 ├── notebooks/
 │   └── train_text_to_image_lora.py
 │
-├── train_lora.bat             # Training script for Windows
+├── streamlit_app/
+│   └── app.py                           # Main Streamlit Application
+│
+├── train_lora.bat                       # Training script for Windows
 ├── Dockerfile
 ├── docker-compose.yml
 ├── requirements.txt
