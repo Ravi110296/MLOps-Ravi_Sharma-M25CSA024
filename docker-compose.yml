@@ -1,9 +1,12 @@
 services:
   text-to-image-app:
     build: .
+    gpus: all
     ports:
       - "8501:8501"
     volumes:
       - ./models:/app/models
     environment:
       - PYTHONUNBUFFERED=1
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility

@@ -57,7 +57,7 @@ with tab1:
     st.header("1. Text Input Processing")
     prompt = st.text_area("Prompt (same for both models):", 
                           "A majestic dragon flying over snowy mountains at sunset", height=130)
-    negative_prompt = st.text_input("Negative Prompt:", "blurry, low quality, deformed")
+    negative_prompt = st.text_input("Negative Prompt:", "blurry, low quality, deformed, painting, cartoon, multiple limbs")
 
     col1, col2, col3 = st.columns(3)
     with col1:

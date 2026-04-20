@@ -11,7 +11,9 @@ COPY requirements.txt .
 RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Install PyTorch with CUDA support
-RUN pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+RUN pip3 install --no-cache-dir --force-reinstall \
+    torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 \
+    --index-url https://download.pytorch.org/whl/cu121
 
 COPY streamlit_app/ ./streamlit_app/
 COPY models/ ./models/
