@@ -35,8 +35,8 @@ MLOps-Ravi_Sharma-M25CSA024/
 │
 ├── notebooks/
 │   └── train_text_to_image_lora.py          # LoRA Training code
-├── └── train_lora_oil.bat                   # Training script for Windows
-├── └── train_lora.bat                       # Training script for Windows
+│   └── train_lora_oil.bat                   # Training script for Windows
+│   └── train_lora.bat                       # Training script for Windows
 │
 ├── streamlit_app/
 │   └── app.py                           # Main Streamlit Application
