@@ -16,7 +16,7 @@ The entire application is **Docker containerized**.
 ## Key Features Implemented
 
 - **Base Model**: Stable Diffusion v1.5
-- **LoRA Fine-tuning**: Real parameter-efficient fine-tuning (trained on general dataset)
+- **LoRA Fine-tuning**: Real parameter-efficient fine-tuning (trained on multiple datasets)
 - **A/B Testing**: Side-by-side comparison between Base Model and Fine-tuned LoRA Model
 - **Drift Monitoring**: CLIP-based image similarity to measure style drift (MLOps requirement)
 - **GPU Acceleration**: Optimized for RTX 2050
@@ -29,21 +29,23 @@ The entire application is **Docker containerized**.
 MLOps-Ravi_Sharma-M25CSA024/
 │
 ├── models/
-│   └── lora_finetuned/                  # Trained LoRA weights (on LAION data subset) + checkpoints
-│   └── lora_finetuned_anime/            # Trained LoRA weights (on pokemon dataset) + checkpoints
-│   └── lora_finetuned_oil_painting/            # Trained LoRA weights (on pokemon dataset) + checkpoints
+│   └── lora_finetuned/        # Trained LoRA weights (on LAION data subset)+checkpoints
+│   └── lora_finetuned_anime/  # Trained LoRA weights (on anime captioning dataset)+checkpoints
+│   └── lora_finetuned_oil_painting/ # Trained LoRA weights (on oil paint dataset)+checkpoints
 │
 ├── notebooks/
-│   └── train_text_to_image_lora.py
+│   └── train_text_to_image_lora.py          # LoRA Training code
+├── └── train_lora_oil.bat                   # Training script for Windows
+├── └── train_lora.bat                       # Training script for Windows
 │
 ├── streamlit_app/
 │   └── app.py                           # Main Streamlit Application
 │
-├── train_lora.bat                       # Training script for Windows
-├── Dockerfile
 ├── docker-compose.yml
-├── requirements.txt
-└── README.md
+├── Dockerfile
+├── README.md
+└── requirements.txt
+
 ```
 
 ## Technologies Used
