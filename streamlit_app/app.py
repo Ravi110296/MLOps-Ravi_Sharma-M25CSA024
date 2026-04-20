@@ -1,5 +1,5 @@
 import streamlit as st
-from diffusers import StableDiffusionPipeline
+from diffusers import StableDiffusionImg2ImgPipeline, StableDiffusionPipeline
 import torch
 import time
 import os
@@ -7,7 +7,43 @@ from sentence_transformers import SentenceTransformer, util
 from io import BytesIO
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-LORA_PATH = os.path.join(BASE_DIR, "models", "lora_finetuned")
+LORA_CANDIDATES = {
+    "Oil Painting LoRA": os.path.join(BASE_DIR, "models", "lora_finetuned_oil_painting"),
+    "Anime LoRA (Backup)": os.path.join(BASE_DIR, "models", "lora_finetuned_anime"),
+    "General LoRA": os.path.join(BASE_DIR, "models", "lora_finetuned"),
+}
+
+
+def has_lora_weights(lora_path):
+    return os.path.exists(os.path.join(lora_path, "pytorch_lora_weights.safetensors"))
+
+
+def get_available_loras():
+    return {name: path for name, path in LORA_CANDIDATES.items() if has_lora_weights(path)}
+
+
+def generate_image(pipe, prompt, negative_prompt, steps, guidance):
+    # Recreate scheduler from config to avoid stale internal state across reruns.
+    pipe.scheduler = pipe.scheduler.__class__.from_config(pipe.scheduler.config)
+    return pipe(
+        prompt,
+        negative_prompt=negative_prompt,
+        num_inference_steps=steps,
+        guidance_scale=guidance,
+    ).images[0]
+
+
+def generate_styled_image(pipe, prompt, negative_prompt, base_image, steps, guidance, style_strength):
+    # Recreate scheduler from config to avoid stale internal state across reruns.
+    pipe.scheduler = pipe.scheduler.__class__.from_config(pipe.scheduler.config)
+    return pipe(
+        prompt=prompt,
+        negative_prompt=negative_prompt,
+        image=base_image,
+        strength=style_strength,
+        num_inference_steps=steps,
+        guidance_scale=guidance,
+    ).images[0]
 
 # ==================== CACHED PIPELINES ====================
 @st.cache_resource(show_spinner=False)
@@ -25,10 +61,10 @@ def load_base_pipeline():
     return pipe
 
 @st.cache_resource(show_spinner=False)
-def load_lora_pipeline():
+def load_lora_pipeline(lora_path):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     dtype = torch.float16 if device == "cuda" else torch.float32
-    pipe = StableDiffusionPipeline.from_pretrained(
+    pipe = StableDiffusionImg2ImgPipeline.from_pretrained(
         "runwayml/stable-diffusion-v1-5",
         torch_dtype=dtype,
         safety_checker=None
@@ -37,10 +73,10 @@ def load_lora_pipeline():
     if device == "cuda":
         pipe.enable_attention_slicing()
 
-    if not os.path.exists(LORA_PATH):
-        raise FileNotFoundError(f"LoRA path not found: {LORA_PATH}")
+    if not has_lora_weights(lora_path):
+        raise FileNotFoundError(f"LoRA weights not found at: {lora_path}")
 
-    pipe.load_lora_weights(LORA_PATH)
+    pipe.load_lora_weights(lora_path)
     return pipe
 
 st.set_page_config(page_title="Text-to-Image MLOps Pipeline", layout="wide")
@@ -55,31 +91,65 @@ tab1, tab2, tab3 = st.tabs(["🎨 A/B Testing", "📊 Drift Monitoring", "📋 L
 # ==================== TAB 1 - A/B TESTING ====================
 with tab1:
     st.header("1. Text Input Processing")
-    prompt = st.text_area("Prompt (same for both models):", 
-                          "A majestic dragon flying over snowy mountains at sunset", height=130)
+    prompt = st.text_area("Base Prompt:",
+                          "Bird sitting on a tree branch", height=130)
+    style_prompt = st.text_input(
+        "Style Prompt (used for conversion):",
+        "oil painting style, visible brush strokes, rich texture, museum quality"
+    )
     negative_prompt = st.text_input("Negative Prompt:", "blurry, low quality, deformed, painting, cartoon, multiple limbs")
 
-    col1, col2, col3 = st.columns(3)
+    available_loras = get_available_loras()
+    lora_labels = list(available_loras.keys())
+    default_index = lora_labels.index("Oil Painting LoRA") if "Oil Painting LoRA" in lora_labels else 0
+    selected_lora_label = st.selectbox("Select LoRA Style", lora_labels, index=default_index) if lora_labels else None
+    selected_lora_path = available_loras[selected_lora_label] if selected_lora_label else None
+
+    if not lora_labels:
+        st.error("No valid LoRA weights found. Add a pytorch_lora_weights.safetensors file to one of the configured LoRA folders.")
+
+    col1, col2, col3, col4 = st.columns(4)
     with col1:
         steps = st.slider("Inference Steps", 15, 50, 25)
     with col2:
         guidance = st.slider("Guidance Scale", 5.0, 12.0, 7.5)
     with col3:
         lora_strength = st.slider("LoRA Strength", 0.6, 1.2, 0.85, 0.05)
+    with col4:
+        style_strength = st.slider("Style Transform Strength", 0.25, 0.9, 0.55, 0.05)
 
-    if st.button("🚀 Run Side-by-Side A/B Test", type="primary", use_container_width=True):
+    base_col, anime_col = st.columns(2)
+    with base_col:
+        run_base = st.button("🧱 Generate Base Image", type="primary", use_container_width=True)
+    with anime_col:
+        run_style = st.button("🎨 Convert Base Image with Selected LoRA", use_container_width=True)
+
+    if run_base:
         if not prompt.strip():
             st.error("Please enter a prompt!")
         else:
-            with st.spinner("Generating images..."):
+            with st.spinner("Generating base image..."):
                 start = time.time()
 
                 pipe_base = load_base_pipeline()
-                img_base = pipe_base(prompt, negative_prompt=negative_prompt,
-                                     num_inference_steps=steps, guidance_scale=guidance).images[0]
+                img_base = generate_image(pipe_base, prompt, negative_prompt, steps, guidance)
                 img_base = img_base.resize((512, 512))
 
-                pipe_lora = load_lora_pipeline()
+                st.session_state.img_base = img_base
+                if 'img_lora' in st.session_state:
+                    del st.session_state.img_lora
+                st.success(f"✅ Base image generated in {time.time()-start:.1f} seconds")
+
+    if run_style:
+        if 'img_base' not in st.session_state:
+            st.info("Generate the base image first.")
+        elif not selected_lora_path:
+            st.info("No LoRA style is available yet.")
+        else:
+            with st.spinner(f"Converting base image with {selected_lora_label}..."):
+                start = time.time()
+
+                pipe_lora = load_lora_pipeline(selected_lora_path)
                 try:
                     pipe_lora.set_adapters("default", adapter_weights=lora_strength)
                 except:
@@ -88,24 +158,33 @@ with tab1:
                     except:
                         pass
 
-                img_lora = pipe_lora(prompt, negative_prompt=negative_prompt,
-                                     num_inference_steps=steps, guidance_scale=guidance).images[0]
+                img_lora = generate_styled_image(
+                    pipe_lora,
+                    style_prompt,
+                    negative_prompt,
+                    st.session_state.img_base,
+                    steps,
+                    guidance,
+                    style_strength,
+                )
                 img_lora = img_lora.resize((512, 512))
 
-                st.session_state.img_base = img_base
                 st.session_state.img_lora = img_lora
-                st.success(f"✅ Generated in {time.time()-start:.1f} seconds")
+                st.session_state.selected_lora_label = selected_lora_label
+                st.success(f"✅ Style conversion completed in {time.time()-start:.1f} seconds")
 
     # Display images OUTSIDE the button block so they persist
-    if 'img_base' in st.session_state and 'img_lora' in st.session_state:
+    if 'img_base' in st.session_state:
         st.subheader("Base Model")
         st.image(st.session_state.img_base, caption="Base Model Output", width=600)
         buf = BytesIO()
         st.session_state.img_base.save(buf, format="PNG")
         st.download_button("📥 Download Base Image", buf.getvalue(), "base_image.png", "image/png", key="dl_base")
 
+    if 'img_lora' in st.session_state:
         st.subheader("LoRA Model")
-        st.image(st.session_state.img_lora, caption="LoRA Model Output", width=600)
+        style_label = st.session_state.get("selected_lora_label", "Selected LoRA")
+        st.image(st.session_state.img_lora, caption=f"{style_label} Output", width=600)
         buf = BytesIO()
         st.session_state.img_lora.save(buf, format="PNG")
         st.download_button("📥 Download LoRA Image", buf.getvalue(), "lora_image.png", "image/png", key="dl_lora")
@@ -131,7 +210,7 @@ with tab2:
                 else:
                     st.warning("High Drift → Strong style shift")
         else:
-            st.info("Run A/B Test first")
+            st.info("Generate base and stylized images first")
 
 with tab3:
 
@@ -167,10 +246,11 @@ with tab3:
 
 
     st.header("📋 LoRA Details")
-    if os.path.exists(LORA_PATH):
-        st.success(f"✅ LoRA loaded from: `{LORA_PATH}`")
-    else:
-        st.error("LoRA folder not found!")
+    for lora_name, lora_path in LORA_CANDIDATES.items():
+        if has_lora_weights(lora_path):
+            st.success(f"✅ {lora_name} available: {lora_path}")
+        else:
+            st.warning(f"⚠️ {lora_name} missing weights: {lora_path}")
 
     
 
