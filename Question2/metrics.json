@@ -1,0 +1,9 @@
+{
+  "epochs": 15,
+  "train_samples": 827,
+  "test_samples": 207,
+  "best_test_miou": 0.489503075609563,
+  "best_test_mdice": 0.5537571294707653,
+  "last_test_miou": 0.489503075609563,
+  "last_test_mdice": 0.5537571294707653
+}
